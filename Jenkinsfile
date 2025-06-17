@@ -57,16 +57,29 @@ pipeline {
         stage("Cloudflare Tunnel") {
             steps {
                 sh '''
-                    # Khởi động tunnel background
-                    nohup cloudflared tunnel --url http://localhost:3000 > cloudflared.log 2>&1 &
-                    sleep 15
+                    pkill -f cloudflared || true
+                    rm -f cloudflared.log
+                    echo "Waiting for app on port 3000..."
+                    for i in {1..10}; do
+                        if curl -s http://localhost:3000 > /dev/null; then
+                            echo "App is ready"
+                            break
+                        fi
+                        sleep 2
+                    done
 
-                    # In ra public URL
+                    echo "Starting cloudflared tunnel..."
+                    nohup cloudflared tunnel --url http://localhost:3000 > cloudflared.log 2>&1 &
+
+                    sleep 10
+
                     echo "🔗 Cloudflare Tunnel Public URL:"
+                    cat cloudflared.log
                     grep -o 'https://.*trycloudflare.com' cloudflared.log || echo "❌ Không tìm thấy URL"
                 '''
             }
-        }
+}
+
     }
 
     post {
@@ -82,8 +95,6 @@ pipeline {
                 fi
                 if docker images -q ${IMAGE_NAME}:${IMAGE_TAG}; then
                     docker rmi -f ${IMAGE_NAME}:${IMAGE_TAG}
-                fi
-                pkill -f cloudflared || true
             '''
         }
     }
