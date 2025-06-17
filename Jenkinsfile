@@ -1,3 +1,6 @@
+// Run docker with: docker run --name jenkins-docker -u root -d -p 8080:8080 -v /var/run/docker.sock:/var/run/docker.sock -v <YOUR_HOME>:/var/jenkins_home jenkins/jenkins
+// In my case, YOUR_HOME is ~/jenkinDir
+
 pipeline {
     agent any
 
@@ -5,10 +8,20 @@ pipeline {
         IMAGE_NAME = 'app-react'
         IMAGE_TAG = 'latest'
         CONTAINER_NAME = 'app-react-container'
+        CLOUDFLARE_TUNNEL_NAME = 'app-react-tunnel'
         APP_PORT = '3000'
     }
 
     stages {
+        stage('Init') {
+            steps {
+                echo 'Cleanup: Removing old containers if any...'
+                sh """
+                    docker rm -f $CONTAINER_NAME || true
+                    docker rm -f $CLOUDFLARE_TUNNEL_NAME || true
+                """
+            }
+        }
         stage('Checkout Code') {
             steps {
                 git branch: 'master', url: 'https://github.com/THHuy/appreact.git'
@@ -69,7 +82,7 @@ pipeline {
                     echo 'Start Cloudflare Tunnel with Docker'
                     // Use host network if Jenkins is running outside Docker, otherwise map specific port
                     sh """
-                        docker run -d --name cloudflared-tunnel \
+                        docker run -d --name $CLOUDFLARE_TUNNEL_NAME \
                             --network host \
                             cloudflare/cloudflared:latest \
                             tunnel --url http://localhost:$APP_PORT 
@@ -78,7 +91,7 @@ pipeline {
                     sleep 15
                     echo 'Cloudflare Tunnel Public URL:'
                     sh """
-                        docker logs cloudflared-tunnel 2>&1 | grep -o 'https://.*trycloudflare.com' || echo "Cannot find URL"
+                        docker logs $CLOUDFLARE_TUNNEL_NAME 2>&1 | grep -o 'https://.*trycloudflare.com' || echo "Cannot find URL"
                     """
                 }
             }
