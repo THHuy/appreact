@@ -44,6 +44,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'DockerHubCredentials', usernameVariable: 'dockerUser', passwordVariable: 'dockerPassword')]) {
                     sh 'docker login -u $dockerUser -p $dockerPassword'
                 }
+                echo 'Docker login successful.'
             }
         }
 
@@ -72,8 +73,8 @@ pipeline {
                 sh '''
                     nohup cloudflared tunnel --url http://localhost:$APP_PORT > cloudflared.log 2>&1 &
                     sleep 15
-                    echo "🔗 Cloudflare Tunnel Public URL:"
-                    grep -o 'https://.*trycloudflare.com' cloudflared.log || echo "❌ Cannot find URL"
+                    echo "Cloudflare Tunnel Public URL:"
+                    grep -o 'https://.*trycloudflare.com' cloudflared.log || echo "Cannot find URL"
                 '''
             }
         }
@@ -93,7 +94,12 @@ pipeline {
             echo 'Pipeline completed successfully.'
         }
         failure {
-            echo 'Pipeline failed.'
+            echo 'Pipeline failed. Stopping container if running...'
+            sh '''
+                if docker ps -q -f name=${CONTAINER_NAME}; then
+                    docker stop ${CONTAINER_NAME}
+                fi
+            '''        
         }
     }
 }
