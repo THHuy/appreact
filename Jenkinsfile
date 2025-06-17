@@ -43,9 +43,16 @@ pipeline {
 
         stage("Docker run local") {
             steps {
-                sh "docker run -d --name ${CONTAINER_NAME} -p 3000:3000 ${IMAGE_NAME}:${IMAGE_TAG}"
+                sh '''
+                    if docker ps -a -q -f name=${CONTAINER_NAME}; then
+                        docker rm -f ${CONTAINER_NAME}
+                    fi
+
+                    docker run -d --name ${CONTAINER_NAME} -p 3000:3000 ${IMAGE_NAME}:${IMAGE_TAG}
+                '''
             }
         }
+
 
         stage("Cloudflare Tunnel") {
             steps {
@@ -68,12 +75,6 @@ pipeline {
         }
 
         failure {
-            echo '❌ Pipeline failed. Stopping container if running...'
-            sh '''
-                if docker ps -q -f name=${CONTAINER_NAME}; then
-                    docker stop ${CONTAINER_NAME}
-                fi
-            '''
             echo '🧹 Cleanup: Removing image, container, and tunnel...'
             sh '''
                 if docker ps -a -q -f name=${CONTAINER_NAME}; then
