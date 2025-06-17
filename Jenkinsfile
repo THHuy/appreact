@@ -63,20 +63,24 @@ pipeline {
                 """
             }
         }
-
         stage('Cloudflare Tunnel') {
             steps {
                 script {
-                    if (sh(script: 'command -v cloudflared', returnStatus: true) != 0) {
-                        error('cloudflared is not installed.')
-                    }
-                }
-                sh '''
-                    nohup cloudflared tunnel --url http://localhost:$APP_PORT > cloudflared.log 2>&1 &
+                    echo 'Start Cloudflare Tunnel with Docker'
+                    // Use host network if Jenkins is running outside Docker, otherwise map specific port
+                    sh """
+                        docker run -d --name cloudflared-tunnel \
+                            --network host \
+                            cloudflare/cloudflared:latest \
+                            tunnel --url http://localhost:$APP_PORT 
+                    """
+                    echo 'Waiting cloudflared to create tunnel...'
                     sleep 15
-                    echo "Cloudflare Tunnel Public URL:"
-                    grep -o 'https://.*trycloudflare.com' cloudflared.log || echo "Cannot find URL"
-                '''
+                    echo 'Cloudflare Tunnel Public URL:'
+                    sh """
+                        docker logs cloudflared-tunnel 2>&1 | grep -o 'https://.*trycloudflare.com' || echo "Cannot find URL"
+                    """
+                }
             }
         }
     }
@@ -84,11 +88,11 @@ pipeline {
     post {
         always {
             echo 'Cleanup: Removing container, image, and tunnel if exist...'
-            sh '''
+            sh """
                 docker rm -f $CONTAINER_NAME || true
                 docker rmi -f $IMAGE_NAME:$IMAGE_TAG || true
                 pkill -f cloudflared || true
-            '''
+            """
             cleanWs()
         }
         success {
@@ -96,11 +100,6 @@ pipeline {
         }
         failure {
             echo 'Pipeline failed. Stopping container if running...'
-            sh '''
-                if docker ps -q -f name=${CONTAINER_NAME}; then
-                    docker stop ${CONTAINER_NAME}
-                fi
-            '''        
         }
     }
 }
