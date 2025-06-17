@@ -15,7 +15,7 @@ function App() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          Learn React and Jenkins Test Docker Hub Login
+          Learn React and Jenkins Test Docker Hub Login and Ngrok
         </a>
       </header>
     </div>
