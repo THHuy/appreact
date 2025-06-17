@@ -10,81 +10,81 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'master',
-                    url: 'https://github.com/THHuy/appreact.git'
+                git branch: 'master', url: 'https://github.com/THHuy/appreact.git'
             }
         }
 
-        stage("Install Dependencies") {
+        stage('Install Dependencies') {
+            agent {
+                docker {
+                    image 'node:18-alpine'
+                    reuseNode true
+                }
+            }
             steps {
-                sh "npm ci"
+                sh 'npm ci'
             }
         }
 
-        stage("Unit Test") {
+        stage('Unit Test') {
             steps {
-                sh "npm test -- --coverage"
+                sh 'npm test -- --coverage'
             }
         }
 
         stage('Docker Login') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'DockerHubCredentials', usernameVariable: 'dockerUser', passwordVariable: 'dockerPassword')]) {
-                    sh 'docker login -u ${dockerUser} -p ${dockerPassword}'
+                    sh 'docker login -u $dockerUser -p $dockerPassword'
                 }
             }
         }
 
-        stage("Build image") {
+        stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                sh 'docker build -t $IMAGE_NAME:$IMAGE_TAG .'
             }
         }
 
-        stage("Docker run local") {
+        stage('Run Docker Container') {
             steps {
                 sh '''
-                    if docker ps -a -q -f name=${CONTAINER_NAME}; then
-                        docker rm -f ${CONTAINER_NAME}
-                    fi
-
-                    docker run -d --name ${CONTAINER_NAME} -p 3000:3000 ${IMAGE_NAME}:${IMAGE_TAG}
+                    docker rm -f $CONTAINER_NAME 2>/dev/null || true
+                    docker run -d --name $CONTAINER_NAME -p 3000:3000 $IMAGE_NAME:$IMAGE_TAG
                 '''
             }
         }
 
-
-        stage("Cloudflare Tunnel") {
+        stage('Cloudflare Tunnel') {
             steps {
                 sh '''
-                    # Khởi động tunnel background
+                    if ! command -v cloudflared >/dev/null 2>&1; then
+                        echo "cloudflared not installed!"
+                        exit 1
+                    fi
                     nohup cloudflared tunnel --url http://localhost:3000 > cloudflared.log 2>&1 &
                     sleep 15
-
-                    # In ra public URL
                     echo "🔗 Cloudflare Tunnel Public URL:"
-                    grep -o 'https://.*trycloudflare.com' cloudflared.log || echo "❌ Không tìm thấy URL"
+                    grep -o 'https://.*trycloudflare.com' cloudflared.log || echo "❌ Cannot find URL"
                 '''
             }
         }
     }
 
     post {
-        success {
-            echo '✅ Pipeline completed successfully.'
-        }
-
-        failure {
-            echo '🧹 Cleanup: Removing image, container, and tunnel...'
+        always {
+            echo 'Cleanup: Removing container, image, and tunnel if exist...'
             sh '''
-                if docker ps -a -q -f name=${CONTAINER_NAME}; then
-                    docker rm -f ${CONTAINER_NAME}
-                fi
-                if docker images -q ${IMAGE_NAME}:${IMAGE_TAG}; then
-                    docker rmi -f ${IMAGE_NAME}:${IMAGE_TAG}
-                fi
+                docker rm -f $CONTAINER_NAME 2>/dev/null || true
+                docker rmi -f $IMAGE_NAME:$IMAGE_TAG 2>/dev/null || true
                 pkill -f cloudflared || true
             '''
+        }
+        success {
+            echo 'Pipeline completed successfully.'
+        }
+        failure {
+            echo 'Pipeline failed.'
         }
     }
 }
