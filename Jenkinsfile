@@ -41,10 +41,11 @@ pipeline {
                         echo 'Docker is already installed.'
                     }
                 }
-                withCredentials([usernamePassword(credentialsId: 'DockerHubCredentials', usernameVariable: 'dockerUser', passwordVariable: 'dockerPassword')]) {
-                    sh 'docker login -u $dockerUser -p $dockerPassword'
-                }
-                echo 'Docker login successful.'
+                // Uncomment the following lines if want to use DockerHub credentials
+                // withCredentials([usernamePassword(credentialsId: 'DockerHubCredentials', usernameVariable: 'dockerUser', passwordVariable: 'dockerPassword')]) {
+                //     sh 'docker login -u $dockerUser -p $dockerPassword'
+                // }
+                // echo 'Docker login successful.'
             }
         }
 
