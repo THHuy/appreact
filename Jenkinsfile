@@ -47,44 +47,34 @@ pipeline {
             }
         }
 
-        stage("Ngrok") {
+        stage("Cloudflare Tunnel") {
             steps {
-                withCredentials([string(credentialsId: 'NgrokToken', variable: 'NGROK_AUTHTOKEN')]) {
-                    // sh '''
-                    //     ngrok config add-authtoken $NGROK_AUTHTOKEN
-                    //     nohup ngrok http 3000 > ngrok.log 2>&1 &
-                    // '''
-                    sh '''
-                        ngrok config add-authtoken $NGROK_AUTHTOKEN
-                        nohup ngrok http 3000 > ngrok.log 2>&1 &
-                        sleep 5  # đợi ngrok khởi động
-                        echo "🔗 Ngrok Public URL:"
-                        curl -s http://localhost:4040/api/tunnels \
-                            | grep -o '"public_url":"https:[^"]*' \
-                            | cut -d '"' -f4
-                    '''
+                sh '''
+                    # Khởi động tunnel background
+                    nohup cloudflared tunnel --url http://localhost:3000 > cloudflared.log 2>&1 &
+                    sleep 15
 
-                }
+                    # In ra public URL
+                    echo "🔗 Cloudflare Tunnel Public URL:"
+                    grep -o 'https://.*trycloudflare.com' cloudflared.log || echo "❌ Không tìm thấy URL"
+                '''
             }
         }
     }
 
     post {
         success {
-            echo 'Pipeline completed successfully.'
+            echo '✅ Pipeline completed successfully.'
         }
 
         failure {
-            echo 'Pipeline failed. Stopping container if running...'
+            echo '❌ Pipeline failed. Stopping container if running...'
             sh '''
                 if docker ps -q -f name=${CONTAINER_NAME}; then
                     docker stop ${CONTAINER_NAME}
                 fi
             '''
-        }
-
-        always {
-            echo '🧹 Cleanup: Removing image and container if exist.'
+            echo '🧹 Cleanup: Removing image, container, and tunnel...'
             sh '''
                 if docker ps -a -q -f name=${CONTAINER_NAME}; then
                     docker rm -f ${CONTAINER_NAME}
@@ -92,6 +82,7 @@ pipeline {
                 if docker images -q ${IMAGE_NAME}:${IMAGE_TAG}; then
                     docker rmi -f ${IMAGE_NAME}:${IMAGE_TAG}
                 fi
+                pkill -f cloudflared || true
             '''
         }
     }
