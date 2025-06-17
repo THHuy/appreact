@@ -86,20 +86,28 @@ pipeline {
     }
 
     post {
-        always {
-            echo 'Cleanup: Removing container, image, and tunnel if exist...'
+        success {
+            sh """
+                echo "Pipeline completed successfully."
+                echo "Docker image $IMAGE_NAME:$IMAGE_TAG built and container $CONTAINER_NAME is running."
+                echo "Cloudflare Tunnel is active."
+            """
+        }
+
+        failure {
+            echo 'Pipeline failed. Cleaning up container...'
             sh """
                 docker rm -f $CONTAINER_NAME || true
-                docker rmi -f $IMAGE_NAME:$IMAGE_TAG || true
                 pkill -f cloudflared || true
             """
+        }
+
+        always {
+            echo 'Cleanup: Clean image, workspace'
+            sh """
+                docker rmi -f $IMAGE_NAME:$IMAGE_TAG || true
+            """
             cleanWs()
-        }
-        success {
-            echo 'Pipeline completed successfully.'
-        }
-        failure {
-            echo 'Pipeline failed. Stopping container if running...'
         }
     }
 }
