@@ -11,10 +11,28 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 git branch: 'master', url: 'https://github.com/THHuy/appreact.git'
+                sh '''
+                    echo "Install docker cli"
+                    if ! command -v docker >/dev/null 2>&1; then
+                        echo "Docker CLI not found! Install Docker."
+                        curl -fsSL https://get.docker.com -o get-docker.sh
+                        sh get-docker.sh
+                        rm get-docker.sh
+                        echo "Docker CLI installed successfully."
+                    else
+                        echo "Docker CLI is already installed."
+                    fi
+                '''
             }
         }
 
         stage('Install Dependencies') {
+            agent {
+                docker {
+                    image 'node:18-alpine'
+                    reuseNode true
+                }
+            }
             steps {
                 sh 'npm ci'
             }
