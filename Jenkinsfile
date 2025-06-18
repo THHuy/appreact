@@ -13,16 +13,7 @@ pipeline {
     }
 
     stages {
-        stage('Init') {
-            steps {
-                echo 'Cleanup: Removing old containers if any...'
-                sh """
-                    docker rm -f $CONTAINER_NAME || true
-                    docker rm -f $CLOUDFLARE_TUNNEL_NAME || true
-                """
-            }
-        }
-        stage('Checkout Code') {
+        stage('Code Checkout') {
             steps {
                 git branch: 'master', url: 'https://github.com/THHuy/appreact.git'
             }
@@ -43,6 +34,7 @@ pipeline {
 
         stage('Docker Login') {
             steps {
+                echo 'Checking Docker installation...'
                 script {
                     if (!sh(script: 'command -v docker', returnStatus: true) == 0) {
                         echo 'Docker CLI not found. Installing...'
@@ -54,6 +46,11 @@ pipeline {
                         echo 'Docker is already installed.'
                     }
                 }
+                echo 'Removing old Docker containers...'
+                sh """
+                    docker rm -f $CONTAINER_NAME || true
+                    docker rm -f $CLOUDFLARE_TUNNEL_NAME || true
+                """
                 // Uncomment the following lines if want to use DockerHub credentials
                 // withCredentials([usernamePassword(credentialsId: 'DockerHubCredentials', usernameVariable: 'dockerUser', passwordVariable: 'dockerPassword')]) {
                 //     sh 'docker login -u $dockerUser -p $dockerPassword'
