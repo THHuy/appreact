@@ -107,14 +107,11 @@ pipeline {
                     def tunnelUrl = sh(script: "cat tunnel_url.txt", returnStdout: true).trim()
                     echo "Tunnel URL: ${tunnelUrl}"
                     sh """
-                        ls -l /var/jenkins_home/workspace/Demo-React/src/test
-                    """
-                    sh """
                         docker run --rm --network host \
                             -v /var/jenkins_home/workspace/Demo-React/src/test:/tests \
                             -v /var/jenkins_home/workspace/Demo-React/src/test/data:/tests/data \
                             $SELENIUM_IMAGE \
-                            python3 /test/runTest.py ${tunnelUrl}
+                            python3 /tests/runTest.py ${tunnelUrl}
                     """
                 }
             }
