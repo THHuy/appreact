@@ -75,7 +75,7 @@ pipeline {
 
                     echo "🔗 Cloudflare Tunnel Public URL:"
                     cat cloudflared.log
-                    grep -o 'https://.*trycloudflare.com' cloudflared.log || echo "❌ Không tìm thấy URL"
+                    grep -o 'https://.*trycloudflare.com' cloudflared.log || echo "Không tìm thấy URL"
                 '''
             }
 }
@@ -84,11 +84,11 @@ pipeline {
 
     post {
         success {
-            echo '✅ Pipeline completed successfully.'
+            echo 'Pipeline completed successfully.'
         }
 
         failure {
-            echo '🧹 Cleanup: Removing image, container, and tunnel...'
+            echo 'Cleanup: Removing image, container, and tunnel...'
             sh '''
                 if docker ps -a -q -f name=${CONTAINER_NAME}; then
                     docker rm -f ${CONTAINER_NAME}
