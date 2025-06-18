@@ -47,12 +47,12 @@ pipeline {
         }
 
         stage('Install Dependencies & Test') {
-            // agent {
-            //     docker {
-            //         image 'node:18-alpine'
-            //         reuseNode true
-            //     }
-            // }
+            agent {
+                docker {
+                    image 'node:18-alpine'
+                    reuseNode true
+                }
+            }
             steps {
                 sh 'npm ci'
                 sh 'npm test -- --coverage'
@@ -85,7 +85,7 @@ pipeline {
                             tunnel --url http://localhost:$APP_PORT 
                     """
                     echo 'Waiting cloudflared to create tunnel...'
-                    sleep 15
+                    sleep 10
                     echo 'Cloudflare Tunnel Public URL:'
                     sh """
                         docker logs $CLOUDFLARE_TUNNEL_NAME 2>&1 | grep -o 'https://.*trycloudflare.com' || echo "Cannot find URL"
