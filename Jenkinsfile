@@ -89,10 +89,11 @@ pipeline {
                             tunnel --url http://localhost:$APP_PORT 
                     """
                     echo 'Waiting cloudflared to create tunnel...'
-                    sleep 10
+                    sleep 5
                     echo 'Cloudflare Tunnel Public URL:'
                     sh """
-                        docker logs $CLOUDFLARE_TUNNEL_NAME 2>&1 | grep -o 'https://.*trycloudflare.com' || echo "Cannot find URL"
+                        CLOUDFLARE_TUNNEL_URL=$(docker logs $CLOUDFLARE_TUNNEL_NAME 2>&1 | grep -o 'https://.*trycloudflare.com' | head -n 1)
+                        echo "$CLOUDFLARE_TUNNEL_URL" > tunnel_url.txt
                     """
                 }
             }
