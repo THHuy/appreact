@@ -109,9 +109,10 @@ pipeline {
                         ls -l \$PWD/src/test
 
                         docker run --rm --network host \
-                            -v /var/jenkins_home/workspace/Demo-React/src:/newSrc \
+                            -v /var/jenkins_home/workspace/Demo-React/src/test/runTest.py/:/runTest.py \
+                            -v /var/jenkins_home/workspace/Demo-React/src/test/data:/test/data \
                             $SELENIUM_IMAGE \
-                            /bin/sh -c "ls -la /newSrc/test && python3 /newSrc/test/runTest.py ${tunnelUrl}"
+                            /bin/sh -c "ls -la && python3 /runTest.py ${tunnelUrl}"
                     """
                 }
             }
