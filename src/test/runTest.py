@@ -23,7 +23,7 @@ class TestHello(unittest.TestCase):
 
         cls.driver = webdriver.Chrome(options=options)
         cls.driver.implicitly_wait(10)
-        with open(os.path.join(os.path.dirname(__file__), "../data/test_data.json"), encoding="utf-8") as f:
+        with open(os.path.join(os.path.dirname(__file__), "./data/test_data.json"), encoding="utf-8") as f:
             cls.test_data = json.load(f)
 
     @classmethod
