@@ -51,7 +51,7 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Install Dependencies & Test') {
             agent {
                 docker {
                     image 'node:18-alpine'
@@ -60,7 +60,7 @@ pipeline {
             }
             steps {
                 sh 'npm ci'
-                //sh 'npm test -- --coverage'
+                sh 'npm test -- --coverage'
             }
         }
 
@@ -90,7 +90,7 @@ pipeline {
                             tunnel --url http://localhost:$APP_PORT 
                     """
                     echo 'Waiting cloudflared to create tunnel...'
-                    sleep 10
+                    sleep 5
                     echo 'Cloudflare Tunnel Public URL:'
                     sh '''
                         CLOUDFLARE_TUNNEL_URL=$(docker logs $CLOUDFLARE_TUNNEL_NAME 2>&1 | grep -o 'https://.*trycloudflare.com' | head -n 1)
@@ -103,6 +103,9 @@ pipeline {
             steps {
                 echo 'Running Python Selenium tests using Chrome in headless mode'
                 script {
+                    def tunnelUrl = sh(script: "cat tunnel_url.txt", returnStdout: true).trim()
+                    echo "Tunnel URL: ${tunnelUrl}"
+
                     sh """
                         docker run --rm --network host \
                             -v "\$(pwd)/src/test:/tests" \
@@ -111,7 +114,7 @@ pipeline {
                             sh -c '
                                 apt-get update && apt-get install -y python3 python3-pip &&
                                 pip3 install selenium &&
-                                python3 /tests/runTest.py $CLOUDFLARE_TUNNEL_URL
+                                python3 /tests/runTest.py ${tunnelUrl}
                             '
                     """
                 }
