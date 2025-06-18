@@ -112,7 +112,7 @@ pipeline {
                             -v "\$(pwd)/src/test:/tests" \
                             -v "\$(pwd)/src/test/data:/tests/data" \
                             $SELENIUM_IMAGE \
-                            python3 /tests/runTest.py ${tunnelUrl}
+                            python3 ./src/test/runTest.py ${tunnelUrl}
                     """
                 }
             }
