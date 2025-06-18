@@ -13,36 +13,18 @@ pipeline {
     }
 
     stages {
-        stage('Code Checkout') {
+        stage('Init') {
             steps {
-                git branch: 'master', url: 'https://github.com/THHuy/appreact.git'
-            }
-        }
-
-        stage('Initialize Docker') {
-            steps {
-                echo 'Checking Docker installation...'
-                script {
-                    if (!sh(script: 'command -v docker', returnStatus: true) == 0) {
-                        echo 'Docker CLI not found. Installing...'
-                        sh '''
-                            curl -fsSL https://get.docker.com -o get-docker.sh
-                            sh get-docker.sh && rm get-docker.sh
-                        '''
-                    } else {
-                        echo 'Docker is already installed.'
-                    }
-                }
-                echo 'Removing old Docker containers...'
+                echo 'Cleanup: Removing old containers if any...'
                 sh """
                     docker rm -f $CONTAINER_NAME || true
                     docker rm -f $CLOUDFLARE_TUNNEL_NAME || true
                 """
-                // Uncomment the following lines if want to use DockerHub credentials
-                // withCredentials([usernamePassword(credentialsId: 'DockerHubCredentials', usernameVariable: 'dockerUser', passwordVariable: 'dockerPassword')]) {
-                //     sh 'docker login -u $dockerUser -p $dockerPassword'
-                // }
-                // echo 'Docker login successful.'
+            }
+        }
+        stage('Checkout Code') {
+            steps {
+                git branch: 'master', url: 'https://github.com/THHuy/appreact.git'
             }
         }
 
@@ -56,6 +38,27 @@ pipeline {
             steps {
                 sh 'npm ci'
                 sh 'npm test -- --coverage'
+            }
+        }
+
+        stage('Docker Login') {
+            steps {
+                script {
+                    if (!sh(script: 'command -v docker', returnStatus: true) == 0) {
+                        echo 'Docker CLI not found. Installing...'
+                        sh '''
+                            curl -fsSL https://get.docker.com -o get-docker.sh
+                            sh get-docker.sh && rm get-docker.sh
+                        '''
+                    } else {
+                        echo 'Docker is already installed.'
+                    }
+                }
+                // Uncomment the following lines if want to use DockerHub credentials
+                // withCredentials([usernamePassword(credentialsId: 'DockerHubCredentials', usernameVariable: 'dockerUser', passwordVariable: 'dockerPassword')]) {
+                //     sh 'docker login -u $dockerUser -p $dockerPassword'
+                // }
+                // echo 'Docker login successful.'
             }
         }
 
@@ -85,7 +88,7 @@ pipeline {
                             tunnel --url http://localhost:$APP_PORT 
                     """
                     echo 'Waiting cloudflared to create tunnel...'
-                    sleep 10
+                    sleep 15
                     echo 'Cloudflare Tunnel Public URL:'
                     sh """
                         docker logs $CLOUDFLARE_TUNNEL_NAME 2>&1 | grep -o 'https://.*trycloudflare.com' || echo "Cannot find URL"
