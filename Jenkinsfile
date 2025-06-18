@@ -111,7 +111,7 @@ pipeline {
                         docker run --rm --network host \
                             -v /var/jenkins_home/workspace/Demo-React/src/test:/test \
                             $SELENIUM_IMAGE \
-                            /bin/sh -c "ls -la && cat /test/runTest.py && python3 /test/runTest.py ${tunnelUrl}"
+                            /bin/sh -c "ls -la /test && python3 /test/runTest.py ${tunnelUrl}"
                     """
                 }
             }
