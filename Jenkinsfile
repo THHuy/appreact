@@ -51,7 +51,7 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies & Test') {
+        stage('Install Dependencies') {
             agent {
                 docker {
                     image 'node:18-alpine'
@@ -60,8 +60,7 @@ pipeline {
             }
             steps {
                 sh 'npm ci'
-                // No need
-                //sh 'npm test -- --coverage'
+            }
             }
         }
 
@@ -107,6 +106,9 @@ pipeline {
                     def tunnelUrl = sh(script: "cat tunnel_url.txt", returnStdout: true).trim()
                     echo "Tunnel URL: ${tunnelUrl}"
                     sh """
+                        echo Current workspace: \$PWD
+                        ls -l \$PWD/src/test
+                        
                         docker run --rm --network host \
                             -v /var/jenkins_home/workspace/Demo-React/src/test:/tests \
                             -v /var/jenkins_home/workspace/Demo-React/src/test/data:/tests/data \
