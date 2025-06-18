@@ -7,6 +7,7 @@ pipeline {
     environment {
         IMAGE_NAME = 'app-react'
         IMAGE_TAG = 'latest'
+        SELENIUM_IMAGE = 'selenium/standalone-chrome'
         CONTAINER_NAME = 'app-react-container'
         CLOUDFLARE_TUNNEL_NAME = 'app-react-tunnel'
         APP_PORT = '3000'
@@ -95,6 +96,24 @@ pipeline {
                         CLOUDFLARE_TUNNEL_URL=$(docker logs $CLOUDFLARE_TUNNEL_NAME 2>&1 | grep -o 'https://.*trycloudflare.com' | head -n 1)
                         echo "$CLOUDFLARE_TUNNEL_URL" > tunnel_url.txt
                     '''
+                }
+            }
+        }
+        stage('UAT with Selenium') {
+            steps {
+                echo 'Running Python Selenium tests using Chrome in headless mode'
+                script {
+                    sh """
+                        docker run --rm --network host \
+                            -v "\$(pwd)/src/test:/tests" \
+                            -v "\$(pwd)/src/test/data:/tests/data" \
+                            $SELENIUM_IMAGE \
+                            sh -c '
+                                apt-get update && apt-get install -y python3 python3-pip &&
+                                pip3 install selenium &&
+                                python3 /tests/runTest.py $CLOUDFLARE_TUNNEL_URL
+                            '
+                    """
                 }
             }
         }

@@ -1,0 +1,26 @@
+[
+  {
+    "input": "bao",
+    "output": "Hello, bao!"
+  },
+  {
+    "input": "Alice",
+    "output": "Hello, Alice!"
+  },
+  {
+    "input": "Bob",
+    "output": "Hello, Bob!"
+  },
+  {
+    "input": "adfasdfsdf",
+    "output": "Hello, adfasdfsdf!"
+  },
+  {
+    "input": "124ef34g3q4",
+    "output": "Hello, 124ef34g3q4!"
+  },
+  {
+    "input": "@#FRG@#",
+    "output": "Hello, @#FRG@#!"
+  }
+]
