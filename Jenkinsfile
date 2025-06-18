@@ -19,20 +19,7 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies & Test') {
-            agent {
-                docker {
-                    image 'node:18-alpine'
-                    reuseNode true
-                }
-            }
-            steps {
-                sh 'npm ci'
-                sh 'npm test -- --coverage'
-            }
-        }
-
-        stage('Docker Login') {
+        stage('Initialize Docker') {
             steps {
                 echo 'Checking Docker installation...'
                 script {
@@ -56,6 +43,19 @@ pipeline {
                 //     sh 'docker login -u $dockerUser -p $dockerPassword'
                 // }
                 // echo 'Docker login successful.'
+            }
+        }
+
+        stage('Install Dependencies & Test') {
+            agent {
+                docker {
+                    image 'node:18-alpine'
+                    reuseNode true
+                }
+            }
+            steps {
+                sh 'npm ci'
+                sh 'npm test -- --coverage'
             }
         }
 
