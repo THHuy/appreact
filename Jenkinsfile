@@ -111,8 +111,8 @@ pipeline {
                     """
                     sh """
                         docker run --rm --network host \
-                            -v "\$(pwd)/src/test:/tests" \
-                            -v "\$(pwd)/src/test/data:/tests/data" \
+                            -v /var/jenkins_home/workspace/Demo-React/src/test:/tests \
+                            -v /var/jenkins_home/workspace/Demo-React/src/test/data:/tests/data \
                             $SELENIUM_IMAGE \
                             python3 /tests/runTest.py ${tunnelUrl}
                     """
