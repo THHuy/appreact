@@ -16,7 +16,7 @@ pipeline {
     stages {
         stage('Code Checkout') {
             steps {
-                git branch: 'bao', url: 'https://github.com/THHuy/appreact.git'
+                git branch: 'huy', url: 'https://github.com/THHuy/appreact.git'
             }
         }
 
@@ -54,7 +54,7 @@ pipeline {
         stage('Install Dependencies') {
             agent {
                 docker {
-                    image 'node:18-alpine'
+                    image 'node:20-alpine'
                     reuseNode true
                 }
             }
