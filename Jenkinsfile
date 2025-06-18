@@ -15,7 +15,7 @@ pipeline {
     stages {
         stage('Code Checkout') {
             steps {
-                git branch: 'master', url: 'https://github.com/THHuy/appreact.git'
+                git branch: 'bao', url: 'https://github.com/THHuy/appreact.git'
             }
         }
 
