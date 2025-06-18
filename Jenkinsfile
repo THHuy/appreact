@@ -140,7 +140,7 @@ pipeline {
             sh """
                 docker rmi -f $IMAGE_NAME:$IMAGE_TAG || true
             """
-            cleanWs()
+            //cleanWs()
         }
     }
 }
