@@ -59,7 +59,10 @@ pipeline {
                 }
             }
             steps {
-                sh 'npm ci'
+                sh '''
+                rm -rf node_modules package-lock.json
+                npm install
+                '''
             }
         }
 
