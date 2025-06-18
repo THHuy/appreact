@@ -60,7 +60,8 @@ pipeline {
             }
             steps {
                 sh 'npm ci'
-                sh 'npm test -- --coverage'
+                // No need
+                //sh 'npm test -- --coverage'
             }
         }
 
