@@ -111,7 +111,7 @@ pipeline {
                             -v /var/jenkins_home/workspace/Demo-React/src/test:/tests \
                             -v /var/jenkins_home/workspace/Demo-React/src/test/data:/tests/data \
                             $SELENIUM_IMAGE \
-                            python3 /tests/runTest.py ${tunnelUrl}
+                            /bin/sh -c "ls -la /tests && python3 /tests/runTest.py ${tunnelUrl}"
                     """
                 }
             }
