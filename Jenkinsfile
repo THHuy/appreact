@@ -61,7 +61,6 @@ pipeline {
             steps {
                 sh 'npm ci'
             }
-            }
         }
 
         stage('Build Docker Image') {
@@ -108,7 +107,7 @@ pipeline {
                     sh """
                         echo Current workspace: \$PWD
                         ls -l \$PWD/src/test
-                        
+
                         docker run --rm --network host \
                             -v /var/jenkins_home/workspace/Demo-React/src/test:/tests \
                             -v /var/jenkins_home/workspace/Demo-React/src/test/data:/tests/data \
