@@ -91,10 +91,10 @@ pipeline {
                     echo 'Waiting cloudflared to create tunnel...'
                     sleep 5
                     echo 'Cloudflare Tunnel Public URL:'
-                    sh """
+                    sh '''
                         CLOUDFLARE_TUNNEL_URL=$(docker logs $CLOUDFLARE_TUNNEL_NAME 2>&1 | grep -o 'https://.*trycloudflare.com' | head -n 1)
                         echo "$CLOUDFLARE_TUNNEL_URL" > tunnel_url.txt
-                    """
+                    '''
                 }
             }
         }
