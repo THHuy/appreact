@@ -108,7 +108,7 @@ pipeline {
                     sh """
                         echo Current workspace: \$PWD
                         ls -l \$PWD/src/test
-                        cat \$PWD/src/test/runTest.py
+                        chmod 777 \$PWD/src/test/runTest.py
                         docker run --rm --network host \
                             -v /var/jenkins_home/workspace/Demo-React/src/test/runTest.py:/runTest.py \
                             $SELENIUM_IMAGE \
