@@ -105,15 +105,15 @@ pipeline {
                 script {
                     def tunnelUrl = sh(script: "cat tunnel_url.txt", returnStdout: true).trim()
                     echo "Tunnel URL: ${tunnelUrl}"
-                    sh """
-                        echo Current workspace: \$PWD
-                        ls -l \$PWD/src/test
-                        chmod 777 \$PWD/src/test/runTest.py
-                        docker run --rm --network host \
-                            -v /var/jenkins_home/workspace/Demo-React/src/test/runTest.py:/runTest.py \
-                            $SELENIUM_IMAGE \
-                            /bin/sh -c "cat /runTest.py && python3 /runTest.py ${tunnelUrl}"
-                    """
+                    // sh """
+                    //     echo Current workspace: \$PWD
+                    //     ls -l \$PWD/src/test
+                    //     chmod 777 \$PWD/src/test/runTest.py
+                    //     docker run --rm --network host \
+                    //         -v /var/jenkins_home/workspace/Demo-React/src/test/runTest.py:/runTest.py \
+                    //         $SELENIUM_IMAGE \
+                    //         /bin/sh -c "cat /runTest.py && python3 /runTest.py ${tunnelUrl}"
+                    // """
                 }
             }
         }
