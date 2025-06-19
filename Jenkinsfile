@@ -107,7 +107,8 @@ pipeline {
                     sh """
                         echo Current workspace: \$PWD
                         ls -l \$PWD/src/test
-
+                        mkdir test 
+                        touch /test/runTest.py
                         docker run --rm --network host \
                             -v /var/jenkins_home/workspace/Demo-React/src/test:/test \
                             $SELENIUM_IMAGE \
