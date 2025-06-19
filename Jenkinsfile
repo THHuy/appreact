@@ -16,6 +16,7 @@ pipeline {
     stages {
         stage('Code Checkout') {
             steps {
+                cleanWs()
                 git branch: 'bao', url: 'https://github.com/THHuy/appreact.git'
             }
         }
@@ -141,7 +142,6 @@ pipeline {
             sh """
                 docker rmi -f $IMAGE_NAME:$IMAGE_TAG || true
             """
-            //cleanWs()
         }
     }
 }
